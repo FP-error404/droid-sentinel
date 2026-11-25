@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
@@ -9,11 +10,12 @@ LOG_DIR = Path.home() / "sentinel_logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 BASELINE_FILE = LOG_DIR / "baseline_conns.json"
+DB_FILE = LOG_DIR / "sentinel.db"
 ALLOWLIST_FILE = BASE_DIR / "allowlist.txt"
 
-SCAN_INTERVAL = 4.0
-WATCH_DIRS = [Path("/sdcard/Download")]
-MAX_HASH_BYTES = 100 * 1024 * 1024  # 100 MB batas ukuran hash langsung
+DEFAULT_SCAN_INTERVAL = 4.0
+DEFAULT_WATCH_DIRS = [Path("/sdcard/Download")]
+DEFAULT_MAX_HASH_MB = 100
 SUSPICIOUS_PORTS = {4444, 5555, 8080, 9001, 1337, 31337, 6666}
 
 DANGEROUS_EXT = {
@@ -91,9 +93,6 @@ def load_allowlist(path: Path = ALLOWLIST_FILE) -> tuple[set[str], set[str]]:
         line = raw.split("#", 1)[0].strip().lower()
         if not line:
             continue
-        # Cek apakah IPv4 / IPv6 valid
-        import ipaddress
-
         try:
             ipaddress.ip_address(line)
             ips.add(line)
